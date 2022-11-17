@@ -55,6 +55,27 @@ class DivMaPlaqueDao extends Table {
     });
   }
 
+  async getSeries() {
+    const results = await super.queryAll(
+      'pk = :pk',
+      { ':pk': 'RANGE' },
+    );
+    for (const result of results) {
+      delete result.pk;
+      delete result.sk;
+    }
+    return results;
+  }
+
+  putSerie(range) {
+    return super.put({
+      pk: "RANGE",
+      sk: range.start,
+      ...range
+    });
+  }
+
+
 }
 
 module.exports = new DivMaPlaqueDao();
