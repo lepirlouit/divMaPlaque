@@ -1,0 +1,80 @@
+# Welcome to serverless. Read the docs
+# https://serverless.com/framework/docs/
+
+# Serverless.yml is the configuration the CLI
+# uses to deploy your code to your provider of choice
+
+# The `service` block is the name of the service
+service: divmaplaque
+
+frameworkVersion: '3'
+
+# The `provider` block defines where your service will be deployed
+provider:
+  name: aws
+  runtime: nodejs16.x
+  stackTags: # Tags that will be added to each of the deployment resources
+    COST: divMapPlaque
+  memorySize: 128
+  logRetentionInDays: 7
+  region: eu-west-1
+  environment:
+    HANDLE_TIME_BASED_MOVINGS_LAMBDA:
+      divmaplaque-prod-helloWorld
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            # - dynamodb:DescribeTable
+            # - dynamodb:Query
+            # - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            # - dynamodb:UpdateItem
+            # - dynamodb:DeleteItem
+            # - dynamodb:BatchWriteItem
+            # - dynamodb:BatchGetItem
+          Resource:
+            - Fn::GetAtt: [divMaPlaqueTable, Arn]
+        - Effect: Allow
+          Action:
+            - lambda:InvokeFunction
+          Resource:
+            Fn::Join:
+              - ""
+              - - "arn:aws:lambda:"
+                - Ref: AWS::Region
+                - ":"
+                - Ref: AWS::AccountId
+                - ":function:"
+                - divmaplaque-prod-helloWorld
+	
+package:
+  individually: true
+  patterns:
+    - '!*/**'
+    - '!*test.js'
+    - '!./**'
+# The `functions` block defines what code to deploy
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    reservedConcurrency: 1
+    environment:
+      STAGE: ${opt:stage, self:provider.stage}
+    package:
+      patterns:
+        - Table.js
+        - node_modules/uuid/**
+        - node_modules/lodash.chunk/**
+        - node_modules/node-fetch/**
+        - dynamodb-lib.js
+        - genericDaoTable.js
+        - divService.js
+        - plaqueService.js
+        - handler.js
+    events:
+      - schedule: rate(1 hour)
+resources:
+  - ${file(./serverless-dynamodb.yml)}
