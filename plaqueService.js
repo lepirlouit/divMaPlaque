@@ -31,7 +31,7 @@ const getNextChar = (charCode) => {
 }
 
 const getNextPlaque = (previous) => {
-  return getStringFromCodes(previous.split('').reverse().reduce((acc, elt, index) => {
+  const next = getStringFromCodes(previous.split('').reverse().reduce((acc, elt, index) => {
     const eltCharCode = getCharCode(elt);
     if (acc.overflow || index === 0) {
       const { nextCharCode, overflow } = getNextChar(eltCharCode);
@@ -44,6 +44,10 @@ const getNextPlaque = (previous) => {
       nextPlaque: [...acc.nextPlaque, eltCharCode],
     })
   }, {}).nextPlaque.reverse());
+  if (next.includes('000')) {
+    return getNextPlaque(next);
+  }
+  return next;
 }
 
 module.exports.getNextPlaque = getNextPlaque;
